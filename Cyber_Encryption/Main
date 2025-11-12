@@ -1,0 +1,154 @@
+import random
+import customtkinter as ctk
+from tkinter import messagebox
+from Cyber_Encryption.caesar import caesar_cipher
+from Cyber_Encryption.vigenere import vigenere_encrypt, vigenere_decrypt
+from Cyber_Encryption.azby import azby_encrypt, azby_decrypt
+from Cyber_Encryption.Zigzag_Cipher import zigzag_decrypt, zigzag_encrypt
+from Cyber_Encryption.WordList import get_word_list
+
+# Example correct credentials
+CORRECT_USERNAME = "AgentSaizki"
+CORRECT_PASSWORD = "7946"
+
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("green")
+
+root = ctk.CTk()
+root.title("Cyber Agent Login")
+root.geometry("400x300")
+
+
+# === Login GUI ===
+def check_login():
+    username = username_entry.get().strip()
+    password = password_entry.get().strip()
+
+    if username == CORRECT_USERNAME and password == CORRECT_PASSWORD:
+        messagebox.showinfo("Login Success", "Welcome, Cyber Agent!")
+        login_frame.destroy()
+        show_main_menu()
+    else:
+        messagebox.showerror("Login Failed", "Invalid username or password.")
+
+
+login_frame = ctk.CTkFrame(root)
+login_frame.pack(pady=40)
+
+ctk.CTkLabel(login_frame, text="🔐 Cyber Agent Login", font=("Arial", 20, "bold")).pack(pady=10)
+
+username_entry = ctk.CTkEntry(login_frame, placeholder_text="Username", width=250)
+username_entry.pack(pady=10)
+
+password_entry = ctk.CTkEntry(login_frame, placeholder_text="Password", show="*", width=250)
+password_entry.pack(pady=10)
+
+login_button = ctk.CTkButton(login_frame, text="Login", command=check_login)
+login_button.pack(pady=10)
+
+
+# === Game Initialization ===
+def show_main_menu():
+    global start_button
+
+    root.geometry("700x700")
+    root.title("Cyber Agent Trainer")
+
+    label = ctk.CTkLabel(root, text="💻 Cyber Agent Trainer: Crack the Code!", font=("Arial", 22, "bold"))
+    label.pack(pady=30)
+
+    start_button = ctk.CTkButton(root, text="🚀 Start Game", font=("Arial", 16), command=lambda: start_game())
+    start_button.pack(pady=20)
+
+
+# === Game Logic ===
+level = 1
+shift = 3
+key = ''.join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=3))
+rails = 3
+methods = ['caesar', 'vigenere', 'azby', 'zigzag']
+entry = None
+window = None
+
+
+def start_game():
+    global level
+    start_button.pack_forget()
+    level = 1
+    root.withdraw()
+    next_level()
+
+
+def next_level():
+    global encrypted, answer, hint
+
+    method = random.choice(methods)
+    word = word = random.choice(get_word_list()).upper()
+
+
+    if method == 'caesar':
+        encrypted = caesar_cipher(word, shift)
+        answer = word
+        hint = f"Caesar Cipher: Shift each letter by {shift}."
+    elif method == 'vigenere':
+        encrypted = vigenere_encrypt(word, key)
+        answer = vigenere_decrypt(encrypted, key)
+        hint = f"Vigenère Cipher: Key is '{key}'."
+    elif method == 'azby':
+        encrypted = azby_encrypt(word)
+        answer = azby_decrypt(encrypted)
+        hint = "AZBY Cipher: A<->Z, B<->Y, etc."
+    elif method == 'zigzag':
+        encrypted = zigzag_encrypt(word, rails)
+        answer = zigzag_decrypt(encrypted, rails)
+        hint = f"Zigzag Cipher (Rail Fence) with {rails} rails."
+
+    show_challenge(encrypted, answer, hint)
+
+
+def show_challenge(enc, correct_answer, hint_text):
+    global entry, window
+
+    window = ctk.CTkToplevel(root)
+    window.title(f"Level {level}")
+    window.geometry("700x500")
+
+    ctk.CTkLabel(window, text="🧩 Encrypted Word", font=("Arial", 18)).pack(pady=10)
+    ctk.CTkLabel(window, text=enc, font=("Courier", 28, "bold"), text_color="lime").pack(pady=5)
+    ctk.CTkLabel(window, text=f"Hint: {hint_text}", font=("Arial", 14), text_color="skyblue").pack(pady=10)
+
+    entry = ctk.CTkEntry(window, font=("Arial", 16), width=300)
+    entry.pack(pady=20)
+
+    submit_btn = ctk.CTkButton(window, text="Submit Answer", command=lambda: check_answer(correct_answer))
+    submit_btn.pack(pady=10)
+
+
+def check_answer(correct):
+    global level
+
+    user_input = entry.get().strip().upper()
+    if user_input == correct:
+        messagebox.showinfo("Correct", "You cracked the code!")
+        window.destroy()
+        level += 1
+        if level <= 3:
+            next_level()
+        else:
+            messagebox.showinfo("Victory", "You completed all levels!")
+            reset()
+    else:
+        messagebox.showerror("Incorrect", f"Wrong! Correct was: {correct}")
+        window.destroy()
+        reset()
+
+
+def reset():
+    global key
+    key = ''.join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=3))
+    root.deiconify()
+    start_button.pack(pady=20)
+
+
+if __name__ == '__main__':
+    root.mainloop()
