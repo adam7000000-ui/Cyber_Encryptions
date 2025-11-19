@@ -13,7 +13,4 @@ def provide_hints():
     ]
     return hints
 
-# Example usage
-if __name__ == "__main__":
-    for hint in provide_hints():
-        print(hint)
+
