@@ -52,13 +52,4 @@ def zigzag_decrypt(cipher, rails):
     return ''.join(result)
 
 
-# Example usage
-if __name__ == "__main__":
-    text = "HELLOZIGZAGCIPHER"
-    rails = 3
 
-    encrypted = zigzag_encrypt(text, rails)
-    print("Encrypted:", encrypted)
-
-    decrypted = zigzag_decrypt(encrypted, rails)
-    print("Decrypted:", decrypted)
